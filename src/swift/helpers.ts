@@ -89,7 +89,7 @@ export class Helpers {
   }
 
   enumDotCaseName(name: string) {
-    return `.${camelCase(name)}`;
+    return `.${this.enumCaseName(name)}`;
   }
 
   operationClassName(name: string) {
