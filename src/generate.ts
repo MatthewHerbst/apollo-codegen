@@ -27,7 +27,7 @@ export default function generate(
   target: TargetType,
   tagName: string,
   projectName: string,
-  options: any
+  options?: any
 ) {
   const schema = schemaPath == null
     ? loadSchemaFromConfig(projectName)
@@ -43,7 +43,7 @@ export default function generate(
 
     const outputIndividualFiles = fs.existsSync(outputPath) && fs.statSync(outputPath).isDirectory();
 
-    const generator = generateSwiftSource(context, outputIndividualFiles, only);
+    const generator = generateSwiftSource(context, outputIndividualFiles, { ...options, only });
 
     if (outputIndividualFiles) {
       writeGeneratedFiles(generator.generatedFiles, outputPath);

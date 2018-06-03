@@ -59,6 +59,18 @@ apollo-codegen generate **/*.graphql --schema schema.json --target flow --output
 apollo-codegen generate **/*.graphql --schema schema.json --target scala --output operation-result-types.scala
 ```
 
+#### Dealing with style
+
+By default, codegen attempts to maintain correctness. However, this may lead to non-standard styling of some names depending on your target type. If you would like to ensure that the output matches the normal styling of the target type, add the `--enforce-target-formatting` flag.
+
+**WARNING:** Adding the above command may lead to output that does NOT match your original schema. *Do not use this option unless you know that you will NEVER have values in the schema that conflict when styled in the manner that you are targeting for the target.*
+
+For example, with the above flag turned on when generating from javascript to swift, an enum with keys `foo_bar` and `FOO_BAR` will generate into an enum with two `fooBar` keys, since standard swift style calls for camelCase keys. This is invalid swift, since swift enum cases cannot be redeclared.
+
+##### Upgrading from < 0.20.0
+
+Note that the above was the default behavior prior to 0.20.0, when the flag was added. So if you are upgrading and would like to maintain the behavior you are used to, you must pass this flag.
+
 #### `gql` template support
 
 If the source file for generation is a javascript or typescript file, the codegen will try to extrapolate the queries inside the [gql tag](https://github.com/apollographql/graphql-tag) templates.
