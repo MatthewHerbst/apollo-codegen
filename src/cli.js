@@ -117,7 +117,7 @@ yargs
         demand: false,
         describe: 'Code generation target language',
         choices: ['swift', 'scala', 'json', 'ts', 'ts-modern', 'typescript', 'typescript-modern', 'flow', 'flow-modern'],
-        default: 'swift'
+        default: 'swift',
       },
       only: {
         describe: 'Parse all input files, but only output generated code for the specified file [Swift only]',
@@ -127,40 +127,40 @@ yargs
       namespace: {
         demand: false,
         describe: 'Optional namespace for generated types [currently Swift and Scala-only]',
-        type: 'string'
+        type: 'string',
       },
       "passthrough-custom-scalars": {
         demand: false,
         describe: "Don't attempt to map custom scalars [temporary option]",
-        default: false
+        default: false,
       },
       "custom-scalars-prefix": {
         demand: false,
         describe: "Prefix for custom scalars. (Implies that passthrough-custom-scalars is true if set)",
         default: '',
-        normalize: true
+        normalize: true,
       },
       "add-typename": {
         demand: false,
         describe: "For non-swift targets, always add the __typename GraphQL introspection type when generating target types",
-        default: false
+        default: false,
       },
       "use-flow-exact-objects": {
         demand: false,
         describe: "Use Flow exact objects for generated types [flow-modern only]",
         default: false,
-        type: 'boolean'
+        type: 'boolean',
       },
       "use-flow-read-only-types": {
         demand: false,
         describe: "Use Flow read only types for generated types [flow-modern only]",
         default: false,
-        type: 'boolean'
+        type: 'boolean',
       },
       "tag-name": {
         demand: false,
         describe: "Name of the template literal tag used to identify template literals containing GraphQL queries in Javascript/Typescript code",
-        default: 'gql'
+        default: 'gql',
       },
       "project-name": {
         demand: false,
@@ -170,14 +170,20 @@ yargs
         demand: false,
         describe: "Path to an operation id JSON map file. If specified, also stores the operation ids (hashes) as properties on operation types [currently Swift-only]",
         default: null,
-        normalize: true
+        normalize: true,
       },
       "merge-in-fields-from-fragment-spreads": {
         demand: false,
         describe: "Merge fragment fields onto its enclosing type",
         default: true,
-        type: 'boolean'
-      }
+        type: 'boolean',
+      },
+      "enforce-target-formatting": {
+        demand: false,
+        describe: 'Generate output matching the styles/formatting of the target. WARNING: This may lead to some fields being dropped from the generated schema.',
+        default: false,
+        type: 'boolean',
+      },
     },
     argv => {
       let { input } = argv;
@@ -202,6 +208,7 @@ yargs
         mergeInFieldsFromFragmentSpreads: argv["merge-in-fields-from-fragment-spreads"],
         useFlowExactObjects: argv['use-flow-exact-objects'],
         useFlowReadOnlyTypes: argv['use-flow-read-only-types'],
+        enforceTargetFormatting: argv['enforce-target-formatting'],
       };
 
       generate(inputPaths, argv.schema, argv.output, argv.only, argv.target, argv.tagName, argv.projectName, options);

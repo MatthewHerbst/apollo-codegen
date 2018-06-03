@@ -35,7 +35,7 @@ export interface Options {
 export function generateSource(
   context: CompilerContext,
   outputIndividualFiles: boolean,
-  only?: string
+  options: any
 ): SwiftAPIGenerator {
   const generator = new SwiftAPIGenerator(context);
 
@@ -45,7 +45,12 @@ export function generateSource(
 
       generator.namespaceDeclaration(context.options.namespace, () => {
         context.typesUsed.forEach(type => {
-          generator.typeDeclarationForGraphQLType(type);
+          generator.typeDeclarationForGraphQLType(
+            type,
+            {
+              enforceTargetFormatting: options.enforceTargetFormatting,
+            }
+          );
         });
       });
     });
@@ -61,7 +66,7 @@ export function generateSource(
     });
 
     for (const inputFilePath of inputFilePaths) {
-      if (only && inputFilePath !== only) continue;
+      if (options.only && inputFilePath !== options.only) continue;
 
       generator.withinFile(`${path.basename(inputFilePath)}.swift`, () => {
         generator.fileHeader();
@@ -86,7 +91,12 @@ export function generateSource(
 
     generator.namespaceDeclaration(context.options.namespace, () => {
       context.typesUsed.forEach(type => {
-        generator.typeDeclarationForGraphQLType(type);
+        generator.typeDeclarationForGraphQLType(
+          type,
+          {
+            enforceTargetFormatting: options.enforceTargetFormatting,
+          }
+        );
       });
 
       Object.values(context.operations).forEach(operation => {
@@ -732,15 +742,15 @@ export class SwiftAPIGenerator extends SwiftGenerator<CompilerContext> {
     this.printOnNewline(']');
   }
 
-  typeDeclarationForGraphQLType(type: GraphQLType) {
+  typeDeclarationForGraphQLType(type: GraphQLType, options: any) {
     if (type instanceof GraphQLEnumType) {
-      this.enumerationDeclaration(type);
+      this.enumerationDeclaration(type, options.enforceTargetFormatting);
     } else if (type instanceof GraphQLInputObjectType) {
       this.structDeclarationForInputObjectType(type);
     }
   }
 
-  enumerationDeclaration(type: GraphQLEnumType) {
+  enumerationDeclaration(type: GraphQLEnumType, enforceTargetFormatting: boolean) {
     const { name, description } = type;
     const values = type.getValues();
 
@@ -753,8 +763,12 @@ export class SwiftAPIGenerator extends SwiftGenerator<CompilerContext> {
       values.forEach(value => {
         this.comment(value.description);
         this.deprecationAttributes(value.isDeprecated, value.deprecationReason);
+        let enumName = value.name;
+        if (enforceTargetFormatting) {
+          enumName = this.helpers.enumCaseName(value.name);
+        }
         this.printOnNewline(
-          `case ${escapeIdentifierIfNeeded(this.helpers.enumCaseName(value.name))}`
+          `case ${escapeIdentifierIfNeeded(enumName)}`
         );
       });
       this.comment('Auto generated constant for unknown enum values');
@@ -766,8 +780,12 @@ export class SwiftAPIGenerator extends SwiftGenerator<CompilerContext> {
         this.printOnNewline('switch rawValue');
         this.withinBlock(() => {
           values.forEach(value => {
+            let enumName = value.name;
+            if (enforceTargetFormatting) {
+              enumName = this.helpers.enumDotCaseName(value.name);
+            }
             this.printOnNewline(
-              `case "${value.value}": self = ${escapeIdentifierIfNeeded(this.helpers.enumDotCaseName(value.name))}`
+              `case "${value.value}": self = ${escapeIdentifierIfNeeded(enumName)}`
             );
           });
           this.printOnNewline(`default: self = .__unknown(rawValue)`);
@@ -780,8 +798,12 @@ export class SwiftAPIGenerator extends SwiftGenerator<CompilerContext> {
         this.printOnNewline('switch self');
         this.withinBlock(() => {
           values.forEach(value => {
+            let enumName = value.name;
+            if (enforceTargetFormatting) {
+              enumName = this.helpers.enumDotCaseName(value.name);
+            }
             this.printOnNewline(
-              `case ${escapeIdentifierIfNeeded(this.helpers.enumDotCaseName(value.name))}: return "${value.value}"`
+              `case ${escapeIdentifierIfNeeded(enumName)}: return "${value.value}"`
             );
           });
           this.printOnNewline(`case .__unknown(let value): return value`);
@@ -794,7 +816,11 @@ export class SwiftAPIGenerator extends SwiftGenerator<CompilerContext> {
         this.printOnNewline('switch (lhs, rhs)');
         this.withinBlock(() => {
           values.forEach(value => {
-            const enumDotCaseName = escapeIdentifierIfNeeded(this.helpers.enumDotCaseName(value.name));
+            let enumName = value.name;
+            if (enforceTargetFormatting) {
+              enumName = this.helpers.enumDotCaseName(value.name);
+            }
+            const enumDotCaseName = escapeIdentifierIfNeeded(enumName);
             const tuple = `(${enumDotCaseName}, ${enumDotCaseName})`
             this.printOnNewline(
               `case ${tuple}: return true`
